@@ -22,7 +22,7 @@ class ApiService:
             query = {
                 "owner_id": group_id,
                 "v": self.api_version,
-                "count": 100,
+                "count": 15,
                 "access_token": self.vk_api_token,
             }
             response = await self.session.get(f"{self.vk_api_url}wall.get/", params=query)
