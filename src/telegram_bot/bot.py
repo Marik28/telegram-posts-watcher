@@ -1,9 +1,13 @@
+import asyncio
+
 import aiohttp
 from aiogram import Bot, Dispatcher, types
 
 from .database import Session
 from .exceptions import AlreadySubscribedError
+from .models.vk_objects import SizeType
 from .services.api import ApiService
+from .services.posts import PostsService
 from .services.users import UsersService
 from .settings import settings
 
@@ -11,38 +15,55 @@ bot = Bot(token=settings.telegram_api_token)
 dp = Dispatcher(bot)
 
 
-# async def check_posts_and_send_messages(sleep_for: int):
-#     while True:
-#         await asyncio.sleep(sleep_for)
-#         with Session() as db_session:
-#             posts_service = PostsService(db_session)
-#             async with aiohttp.ClientSession() as session:
-#                 api_service = ApiService(session)
-#                 latest_posts = await api_service.get_latest_posts()
-#             new_posts = posts_service.filter_new_posts(latest_posts)
-#             posts_service.add_posts(new_posts)
-#             all_photos_links = []
-#             for post in new_posts:
-#                 attachments = post.attachments or []
-#                 photos = [attachment.photo for attachment in attachments if attachment.photo is not None]
-#
-#                 for photo in photos:
-#                     best_quality_photos_urls = [size.url for size in photo.sizes if size.type == SizeType.W]
-#                     all_photos_links.extend(best_quality_photos_urls)
-#
-#             users_service = UsersService(db_session)
-#             users = users_service.get_users()
-#
-#         for user in users:
-#             for link in all_photos_links:
-#                 await bot.send_message(user.id, link)
+async def check_posts_and_send_messages(sleep_for: int):
+    while True:
+        await asyncio.sleep(sleep_for)
+        with Session() as db_session:
+            posts_service = PostsService(db_session)
+            async with aiohttp.ClientSession() as session:
+                api_service = ApiService(session)
+                latest_posts = await api_service.get_latest_posts()
+            new_posts = posts_service.filter_new_posts(latest_posts)
+            posts_service.add_posts(new_posts)
+            all_photos_links = []
+            for post in new_posts:
+                attachments = post.attachments or []
+                photos = [attachment.photo for attachment in attachments if attachment.photo is not None]
+
+                for photo in photos:
+                    best_quality_photos_urls = [size.url for size in photo.sizes if size.type == SizeType.W]
+                    all_photos_links.extend(best_quality_photos_urls)
+
+            users_service = UsersService(db_session)
+            users = users_service.get_users()
+
+        for user in users:
+            for link in all_photos_links:
+                await bot.send_message(user.id, link)
+
 
 async def get_new_posts(sleep_for: int):
-    ...
+    while True:
+        await asyncio.sleep(sleep_for)
+        with Session() as db_session:
+            posts_service = PostsService(db_session)
+            async with aiohttp.ClientSession() as session:
+                api_service = ApiService(session)
+                latest_posts = await api_service.get_latest_posts()
+            new_posts = posts_service.filter_new_posts(latest_posts)
+            posts_service.add_posts(new_posts)
 
 
 async def send_message(sleep_for: int):
-    ...
+    while True:
+        await asyncio.sleep(sleep_for)
+        with Session() as db_session:
+            users_service = UsersService(db_session)
+            users = users_service.get_users()
+
+        for user in users:
+            for link in all_photos_links:
+                await bot.send_message(user.id, link)
 
 
 @dp.message_handler(commands=["subscribe"])
