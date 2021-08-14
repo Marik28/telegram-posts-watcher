@@ -57,7 +57,7 @@ async def process_subscribe_command(message: types.Message):
         else:
             msg = "Вы успешно подписаны на рассылку"
 
-    await bot.send_message(user.id, msg)
+    await message.answer(msg)
 
 
 @dp.message_handler(commands=["unsubscribe"])
